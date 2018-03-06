@@ -1,7 +1,7 @@
 import React from 'react';
 import TaskList from './TaskList.js';
 import axios from 'axios';
-import {Link} from 'react-router-dom';
+import Header from './Header.js';
 
 class Profile extends React.Component {
   constructor(props) {
@@ -37,24 +37,17 @@ class Profile extends React.Component {
           <div className="column" style={{maxWidth: '350px'}}>
             {this.state.tasks.length > 0 ? (
               <div>
-                <div className="ui message">
-                  <Link
-                    className="ui fluid large blue submit button"
-                    to="/login">
-                    Back to the main page!
-                  </Link>
+                <Header className="ui header" name={this.props.match.params.username}/>
+                <div style={{paddingTop: '50px'}}>
+                  <TaskList tasks={this.state.tasks} />
                 </div>
-
-                <TaskList tasks={this.state.tasks} />
               </div>
             ) : (
               <div>
-                <Link to="/" className="header item">
-                  <h2 className="ui blue image header">
-                    <div className="content" />
-                  </h2>
-                </Link>
-                No tasks to display!
+                <Header className="ui header" name={this.props.match.params.username}/>
+                <div style={{paddingTop: '50px'}}>
+                  <h2>No Tasks to Display!</h2>
+                </div>
               </div>
             )}
           </div>

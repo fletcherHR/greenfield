@@ -1,8 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 const db = require('./database/models.js').db;
-const {User, Task, UserTasks, Organization} = require('./database/models.js');
+const {User, Task, UserTasks, Organization, UserOrg} = require('./database/models.js');
 const session = require('express-session');
 
 let app = express();
@@ -53,7 +54,7 @@ app.post('/login', function(req, res) {
     },
   })
     .then(e => {
-      console.log(e);
+      console.log('this is e', e);
       if (e && e.dataValues.password === req.body.password) {
         console.log(`Server found user ${req.body.username}`);
         res.status(200).send(
@@ -84,6 +85,11 @@ app.post('/username', function(req, res) {
   let name = req.session.user;
   res.end(name);
 });
+
+app.get('/username', function(req, res) {
+  console.log('this is session\n', req.session)
+  res.send(req.session.user);
+})
 
 app.get('/destroySession', function(req, res) {
   console.log('before destroy this is session', req.session);
@@ -166,9 +172,20 @@ app.get('/tasks', function(req, res) {
 // save a new task object to the database.
 app.post('/tasks', function(req, res) {
   // TODO: Need UserId for Task object creation, acquired from session.
-  const {title, date, description, location, time, organization} = req.body;
-  console.log(title, date, description, location, organization, time);
-  Task.create({title, date, description, location, time, organization}).then(
+  const { title, date, description, location, time, organization, latitude, longitude, needed } = req.body;
+  Task.create({
+    time,
+    organization,
+    date,
+    location,
+    title,
+    description,
+    latitude,
+    longitude,
+    needed,
+    volunteers: 0,
+  })
+    .then(
     results => {
       res.send('created');
     },
@@ -217,7 +234,12 @@ app.post('/tasks/:taskId/accept', function(req, res) {
       if (data === null) {
         UserTasks.create({UserId: UserID, TaskId: TaskID})
           .then(() => {
-            res.send('Task is added');
+            Task.findById(TaskID)
+            .then(task => {
+              task.increment('volunteers', {by: 1})
+            }).then(() => {
+              res.send('Task is added');
+            })
           })
           .catch(err => {
             console.log(err);
@@ -226,6 +248,7 @@ app.post('/tasks/:taskId/accept', function(req, res) {
     });
   });
 });
+
 
 app.post('/tasks/:taskId/reject', function(req, res) {
   var UserName = req.body.username;
@@ -252,9 +275,74 @@ app.post('/tasks/:taskId/reject', function(req, res) {
         console.log('just destroyed it');
       })
       .then(data => {
-        console.log('we are hopefully about to redirect but lets seee', data);
-        res.send('SHOULD REDIRECT');
+        Task.findById(TaskID)
+        .then(task => {
+          task.increment('volunteers', {by: -1})
+        }).then(() => {
+          res.send('SHOULD REDIRECT');
+        })
+
+        //console.log('we are hopefully about to redirect but lets seee', data);
+        //res.send('SHOULD REDIRECT');
       });
+  });
+});
+
+app.post('/orgs', function(req, res) {
+  const {username, password, name, bio, site, location, contact, userUsername} = req.body;
+  Organization.create({username, password, name, bio, site, location, contact}).then(
+    results => {
+      User.find({
+        where: {
+          username: userUsername
+        }
+      }).then(data => {
+        UserOrg.create({userId: data.id, orgId: results.id});
+        res.send();
+      })
+    },
+  );
+});
+
+app.get('/orgs/:username', function(req, res) {
+  User.find({
+    where: {
+      username: req.params.username
+    }
+  }).then(data => {
+    UserOrg.findAll({
+      attributes: ['orgId'],
+      where: {
+        userId: data.id
+      }
+    }).then(data2 => {
+      Organization.findAll({
+        where: {
+          id: {
+            [Op.in]: data2.map(x => x.orgId)
+          }
+        }
+      }).then(final => {
+        console.log('this is final:',final);
+        res.send(final);
+      }).catch(err => {
+        console.log('here is the error 2',err);
+      });
+    }).catch(err => {
+      console.log('here is the error 1',err);
+    });
+  });
+});
+
+app.get('/orgs/tasks/:orgname', function(req, res) {
+  Task.findAll({
+    where: {
+      organization: req.params.orgname
+    }
+  }).then(data => {
+    res.send(data);
+  }).catch(err => {
+    console.log('here is the error 1',err);
   });
 });
 

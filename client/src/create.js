@@ -1,6 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import './signup.css';
+import Header from './Header.js';
 import axios from 'axios';
 
 class Create extends React.Component {
@@ -14,6 +15,9 @@ class Create extends React.Component {
       location: '',
       title: '',
       description: '',
+      needed: 0,
+      orgs: [],
+      username: this.props.match.params.username
     };
     this.handleTime = this.handleTime.bind(this);
     this.handleOrg = this.handleOrg.bind(this);
@@ -24,19 +28,39 @@ class Create extends React.Component {
     this.handleCreate = this.handleCreate.bind(this);
   }
 
-  handleCreate() {
-    axios
-      .post('/tasks', {
-        time: this.state.time,
-        organization: this.state.organization,
-        date: this.state.date,
-        location: this.state.location,
-        title: this.state.title,
-        description: this.state.description,
-      })
-      .then(() => {
-        this.props.history.push('/');
+  componentWillMount() {
+    axios.get(`/orgs/${this.state.username}`).then(results => {
+      console.log(results)
+      const orgs = results.data.map(r => r.name);
+      this.setState({
+        orgs,
       });
+    });
+  }
+
+  handleCreate() {
+    const queryString = `https://maps.googleapis.com/maps/api/geocode/json?address=${this.state.location}&key=AIzaSyBH-6-MO2reXrAZ4fDQuzkOghyIBPkLyhE`;
+    // const queryString = 'https://maps.googleapis.com/maps/api/geocode/json?address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&key=AIzaSyBH-6-MO2reXrAZ4fDQuzkOghyIBPkLyhE'
+    console.log('this is the queryString: ', queryString);
+    axios.get(queryString)
+      .then((res) => {
+        axios.post('/tasks', {
+          time: this.state.time,
+          organization: this.state.organization,
+          date: this.state.date,
+          location: this.state.location,
+          title: this.state.title,
+          description: this.state.description,
+          // latitude: res.data.results[0].geometry.location.lat,
+          // longitude: res.data.results[0].geometry.location.lng,
+        })
+          .then(() => {
+            this.props.history.push('/');
+          })
+          .catch((err) => {
+            console.log('ERROR in handleCreate(), error: ', err);
+          });
+      })
   }
 
   // If this looks redundant, it's because it is.
@@ -50,9 +74,11 @@ class Create extends React.Component {
   }
 
   handleOrg(e) {
-    this.setState({
-      organization: e.target.value,
-    });
+    if(e.target.selectedIndex !== 0){
+      this.setState({
+        organization: e.target.options[e.target.selectedIndex].text,
+      });
+    }
   }
 
   handleDate(e) {
@@ -79,8 +105,19 @@ class Create extends React.Component {
     });
   }
 
+  handleNeeded(e) {
+    this.setState({
+      needed: e.target.value
+    });
+  }
+
+
+
   render() {
+    console.log('in create', this.props.location.param1);
     return (
+    <div>
+      <Header name={this.state.username}/>
       <div className="ui container" style={{paddingTop: '100px'}}>
         <div className="ui middle aligned center aligned grid">
           <div className="column" style={{maxWidth: '450px'}}>
@@ -90,21 +127,14 @@ class Create extends React.Component {
 
             <div className="ui stacked segment">
               <div className="field">
-                <div className="ui left icon input">
-                  <label htmlFor="organization" />
-                  <input
-                    value={this.state.organization}
-                    onChange={e => {
-                      this.handleOrg(e);
-                    }}
-                    type="text"
-                    id="organization"
-                    name="organization"
-                    placeholder="Organization Name"
-                  />
-                </div>
+                <select
+                  className="ui search dropdown"
+                  onChange={e => {this.handleOrg(e)}}
+                >
+                  <option>Organization</option>
+                  {this.state.orgs.map(m => <option>{m}</option>)}
+                </select>
               </div>
-
               <div className="field">
                 <div className="ui left icon input">
                   <label htmlFor="title" />
@@ -185,6 +215,22 @@ class Create extends React.Component {
                 </div>
               </div>
 
+              <div className="field">
+                <div className="ui left icon input">
+                  <label htmlFor="needed" />
+                  <input
+                    value={this.state.needed}
+                    onChange={e => {
+                      this.handleNeeded(e);
+                    }}
+                    type="text"
+                    id="volunteers"
+                    name="volunteers"
+                    placeholder="How many people needed?"
+                  />
+                </div>
+              </div>
+
               <button
                 onClick={() => {
                   this.handleCreate();
@@ -202,8 +248,15 @@ class Create extends React.Component {
           </div>
         </div>
       </div>
+    </div>
     );
   }
 }
 
 export default Create;
+
+// axios.get('https://maps.googleapis.com/maps/api/geocode/json?address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&key=AIzaSyBH-6-MO2reXrAZ4fDQuzkOghyIBPkLyhE')
+//   .then((res) => {
+//     console.log('this is the latitude: ', res.data.results[0].geometry.location.lat);
+//     console.log('this is the longitude: ', res.data.results[0].geometry.location.lng);
+//   })
