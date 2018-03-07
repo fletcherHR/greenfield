@@ -2,6 +2,11 @@ import React from 'react';
 import {Link} from 'react-router-dom';
 
 const Header = function(props) {
+  const createTo = {
+    pathname: `/create/${props.name}`,
+    param1: "Par1",
+    param2: 'asdfa'
+  };
   return (
     <div className="ui fixed inverted menu">
       <div className="ui container">
@@ -9,7 +14,10 @@ const Header = function(props) {
           VolunTinder
         </Link>
         <div className="right item">
-          <Link to="/create" className="header item">
+          <Link to={`/createOrg/${props.name}`} className="header item">
+              Create Organization
+          </Link>
+          <Link to={createTo} className="header item">
             Create
           </Link>
           <Link to={`/users/${props.name}`} className="item">
