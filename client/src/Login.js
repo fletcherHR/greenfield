@@ -21,27 +21,27 @@ class Login extends React.Component {
   }
 
   login() {
-    Auth.username = this.state.username;
-    Auth.password = this.state.password;
-    let that = this;
-    console.log(that);
-    console.log('Logging in ...');
-    Auth.authenticate(isAuthenticated => {
-      if (!isAuthenticated) {
-        axios
-          .post(`/login`, {
-            username: that.state.username,
-            password: that.state.password,
-          })
-          .then(res => {
-            console.log('successfully logged in');
-            that.setState({redirectToReferrer: true});
-          });
-      } else {
-        console.log('Already authed login is unnnecessery');
-        that.setState({redirectToReferrer: true});
-      }
-    });
+      Auth.username = this.state.username;
+      Auth.password = this.state.password;
+      let that = this;
+      console.log(that);
+      console.log('Logging in ...');
+      Auth.authenticate(isAuthenticated => {
+        if (!isAuthenticated) {
+          axios
+            .post(`/login`, {
+              username: that.state.username,
+              password: that.state.password,
+            })
+            .then(res => {
+              console.log('successfully logged in');
+              that.setState({redirectToReferrer: true});
+            });
+        } else {
+          console.log('Already authed login is unnnecessery');
+          that.setState({redirectToReferrer: true});
+        }
+      });
   }
 
   handleUsernameInput(e) {
@@ -91,6 +91,7 @@ class Login extends React.Component {
                       id="password"
                       placeholder="Password"
                       onChange={this.handlePasswordInput}
+                      onKeyPress={(e)=>{if(e.key==='Enter') this.login()}}
                     />
                   </div>
                 </div>

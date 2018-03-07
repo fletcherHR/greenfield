@@ -36,14 +36,16 @@ class Home extends React.Component {
 
   render() {
     return (
-      <div className="ui container" style={{paddingTop: '100px'}}>
+      <div className="ui container" style={{paddingTop: '50px'}}>
         <Header name={this.state.username} />
-        <h1 className="ui center aligned header">
-          <code>VolunTinder</code>
-        </h1>
         <div className="ui stackable grid">
-          <div className="four wide column">
-            <TaskList tasks={this.state.tasks} />
+          <div
+            className="six wide column"
+            style={{ height: '88vh', overflowY: 'scroll', transform: 'scaleX(-1)' }}
+          >
+            <div style={{ transform: 'scaleX(-1)' }}>
+              <TaskList username={this.state.username} tasks={this.state.tasks} />
+            </div>
           </div>
           <script
             async
@@ -51,7 +53,10 @@ class Home extends React.Component {
             src={`https://maps.googleapis.com/maps/api/js?key=AIzaSyBH-6-MO2reXrAZ4fDQuzkOghyIBPkLyhE&callback=initMap`}
             type="text/javascript"
           />
-          <div className="twelve wide column">
+          <div
+            className="ten wide column"
+            //style={{ height: '80%' }}
+          >
             <GoogleMaps
               isMarkerShown
               googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyBH-6-MO2reXrAZ4fDQuzkOghyIBPkLyhE&v=3.exp&libraries=geometry,drawing,places"

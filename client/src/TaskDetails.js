@@ -9,28 +9,47 @@ class TaskDetails extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      showDelete: false,
       task: {},
       taskId: props.match.params.taskId,
       tasks: [],
+      username: this.props.location.username,
     };
 
     this.acceptTask = this.acceptTask.bind(this);
     this.rejectTask = this.rejectTask.bind(this);
+    this.deleteTask = this.deleteTask.bind(this);
   }
-
+//
   componentDidMount() {
     // Get the task info from the API
     console.log('Running?');
-    axios.get(`/tasks/${this.state.taskId}`).then(result => {
+    axios.get(`/tasks/${this.state.taskId}`)
+    .then(result => {
       console.log('results', result.data);
       this.setState({task: result.data});
-    });
+    })
+    .then(() => {
+      axios.post(`/checkDelete`, {
+        organization: this.state.task.organization,
+        username: Auth.username
+      }).then(result => {
+        this.setState({showDelete: result.data})
+      })
+    })
   }
 
   displayButtonPostResult(isAccepted) {
     isAccepted
       ? alert('Task has been accepted!')
       : alert('Task has been rejected!');
+  }
+  displayDeleteResult(delOrComplete) {
+    // left this as a conditional in case we want to add a second button
+    // like "complete" instead of just delete
+    delOrComplete
+      ? alert('Task has been deleted!')
+      : alert('Task has been completed!');
   }
 
   acceptTask() {
@@ -41,7 +60,7 @@ class TaskDetails extends React.Component {
         this.displayButtonPostResult(true);
       })
       .then(() => {
-        this.props.history.goBack();
+        this.props.history.push('/');
       });
   }
 
@@ -54,8 +73,18 @@ class TaskDetails extends React.Component {
       })
       .then(() => {
         console.log('this is redirection!!');
-        this.props.history.goBack();
+        this.props.history.push('/');
       });
+  }
+
+  deleteTask() {
+    axios.post(`/tasks/${this.state.taskId}/delete`, {username: Auth.username})
+    .then(() => {
+      this.displayDeleteResult(true);
+    })
+    .then(() => {
+      this.props.history.push('/');
+    })
   }
 
   render() {
@@ -93,6 +122,14 @@ class TaskDetails extends React.Component {
                     </button>
                   </div>
                 </div>
+                {this.state.showDelete ?
+                  <div className="ui center aligned attached segment">
+                    <div className="ui negative buttons">
+                      <button onClick={this.deleteTask} className="ui button">
+                        Delete
+                      </button>
+                    </div>
+                  </div> : ''}
               </div>
             </div>
           </div>
@@ -110,7 +147,7 @@ class TaskDetails extends React.Component {
           <div className="four wide column">
             <div className="ui segment">
               <h3>Further Details</h3>
-              {this.state.task ? <Traits task={this.state.task} /> : 'Loading'}
+              {this.state.task ? <Traits task={this.state.task} username={this.state.username} /> : 'Loading'}
             </div>
           </div>
         </div>
