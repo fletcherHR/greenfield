@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "install": "cd client && yarn install && react-scripts build && cd .. && cd server && yarn install",
-    "start": "cd server && node server.js",
+    "start": "cd server && node server.js", 
     "dev": "mysql.server start && concurrently \"nodemon server/server.js\" \"cd client && react-scripts start\""
   },
   "dependencies": {
