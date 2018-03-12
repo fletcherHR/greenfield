@@ -20,18 +20,19 @@ class Login extends React.Component {
       username: '',
       password: '',
     };
-    
+
   }
 
   responseGoogle(response) {
     console.log(response.profileObj)
-    axios.post('/googleLogin', response.profileObj)
-    .then((res) => {
-      Auth.isAuthenticated = true;
-      Auth.username = res.data.username;
-      Auth.password = res.data.password;
-      this.setState({redirectToReferrer: true})
-    })
+
+      axios.post('/googleLogin', response.profileObj)
+      .then((res) => {
+        Auth.isAuthenticated = true;
+        Auth.username = res.data.username;
+        Auth.password = res.data.password;
+        this.setState({redirectToReferrer: true})
+      })
   }
 
   login() {
@@ -81,7 +82,7 @@ class Login extends React.Component {
         <div className="ui middle aligned center aligned grid">
           <div className="column" style={{maxWidth: '450px'}}>
             <h2 className="ui blue image header">
-              <div className="content">Log-in to Home To Volunteer</div>
+              <div className="content">Log-in to uVolunteer</div>
             </h2>
             <div className="ui large form">
               <div className="ui stacked segment">
@@ -123,7 +124,7 @@ class Login extends React.Component {
               </Link>
             </div>
             <GoogleLogin
-              clientId="328482894747-0eo5s342dm8heupoemvanntj2tqnhfjt.apps.googleusercontent.com"
+              clientId="328482894747-igpb1a9uppg0906r03radh7ll1qlnftm.apps.googleusercontent.com"
               buttonText="Google Login"
               onSuccess={this.responseGoogle}
               onFailure={this.responseGoogle}
